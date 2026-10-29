@@ -10,4 +10,8 @@ bun run dev
 
 Por padrão, a interface usa `http://localhost:3000/api`. Para outra instância, defina `VITE_API_URL` antes de compilar. O build é `bun run build`.
 
-As seis telas e jornadas são registradas em `../docs/03-design-telas/`. Para rodar Playwright, inicie a API e o Vite, semeie cinco alunos e rode `bun run test:e2e`.
+As seis telas e jornadas estão documentadas em `../backend/docs/03-design-telas/`. Para rodar Playwright, inicie a API e o Vite, semeie cinco alunos e rode `bun run test:e2e`.
+
+## Render
+
+O arquivo `render.yaml` descreve o serviço estático deste repositório. Configure `VITE_API_URL` com o endereço público da API, incluindo `/api`.
