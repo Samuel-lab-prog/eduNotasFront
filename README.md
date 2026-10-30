@@ -14,4 +14,8 @@ As seis telas e jornadas estão documentadas no repositório de documentação d
 
 ## Render
 
-O arquivo `render.yaml` descreve o serviço estático deste repositório. Configure `VITE_API_URL` com o endereço público da API, incluindo `/api`.
+O Dockerfile compila a interface e serve os arquivos pelo Nginx. O arquivo `render.yaml` usa o runtime Docker. Configure `VITE_API_URL` com o endereço público da API, incluindo `/api`; a imagem usa `http://localhost:3000/api` como padrão local.
+
+## CI/CD
+
+O GitHub Actions instala as dependências travadas, compila a interface, constrói a imagem Docker e verifica as rotas `/healthz` e `/login`. O Render publica após os checks passarem quando o repositório estiver conectado.

@@ -1,16 +1,11 @@
 services:
   - type: web
     name: edunotas-web
-    runtime: static
-    buildCommand: bun install --frozen-lockfile && bun run build
-    staticPublishPath: dist
-    autoDeployTrigger: off
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeployTrigger: checksPass
+    healthCheckPath: /healthz
     envVars:
-      - key: BUN_VERSION
-        value: 1.4.0
       - key: VITE_API_URL
         value: https://edunotas-api.onrender.com/api
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
