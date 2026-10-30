@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 
 const browser = await chromium.launch({ headless: true })
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 })
-const out = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'backend', 'docs', '03-design-telas', 'screenshots')
+const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'test-results', 'screenshots')
 await mkdir(out, { recursive: true })
 const shot = async (name) => page.screenshot({ path: join(out, `${name}.png`), fullPage: true })
 const assert = (condition, message) => { if (!condition) throw new Error(message); console.log(`PASS ${message}`) }
