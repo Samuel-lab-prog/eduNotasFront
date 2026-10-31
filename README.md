@@ -38,6 +38,10 @@ O Dockerfile constrói os assets e serve a SPA pelo Nginx na porta `10000`. O Ng
 
 O health check é `GET /healthz`. O fallback da SPA permite abrir diretamente as rotas `/estudantes` e `/estudantes/:id`.
 
+## Vercel
+
+O arquivo `vercel.json` encaminha `/api/*` para a API da disciplina e mantém o fallback das rotas da aplicação. Não é necessária variável de ambiente no Vercel para usar a API fornecida.
+
 ## CI
 
 O workflow do GitHub Actions instala as dependências travadas, executa o build e constrói a imagem Docker. A verificação da imagem consulta `/healthz` e a rota da aplicação. O script `bun run test:e2e` intercepta `/api` com dados em memória para exercitar cadastro, consulta, edição e exclusão sem alterar dados da API do professor; exige a aplicação Vite em execução.

@@ -20,3 +20,9 @@ table.students-table{min-width:900px}
 .error-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .toast-error{background:#f9eceb;color:var(--error)}
 @media(max-width:650px){.grade-input-grid,.three-grade-cards{grid-template-columns:1fr}.page-actions{align-self:flex-start}}
+
+.main-area,.content{min-width:0}
+.stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat-card{min-width:0}
+.page-title>div{min-width:0}
+@media(max-width:1050px) and (min-width:651px){.page-title{align-items:flex-start;flex-wrap:wrap}.page-title .button,.page-actions{margin-left:auto}}
