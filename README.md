@@ -1,21 +1,43 @@
-# EduNotas Frontend
+# EduNotas — interface web
 
-Interface do professor em React, TypeScript, Vite e Chakra UI. As telas consultam a API do diretório `backend`; as notas e os alunos não são mantidos no navegador.
+Aplicação React, TypeScript e Vite para cadastrar, consultar, editar e excluir estudantes pela API fornecida na disciplina. O sistema exibe as notas 1, 2 e 3 e calcula a média no navegador.
+
+## Desenvolvimento local
+
+Requer Bun e Node.js compatível com o Vite.
 
 ```sh
 bun install
-Copy-Item .env.example .env.local
+```
+
+Copie `.env.example` para `.env.local` se quiser configurar o destino da API. O Vite encaminha `/api/*` ao serviço indicado por `API_PROXY_TARGET`; por padrão, usa `https://ads.osorio.ifrs.edu.br/progweb-api`.
+
+```sh
 bun run dev
 ```
 
-Por padrão, a interface usa `http://localhost:3000/api`. Para outra instância, defina `VITE_API_URL` antes de compilar. O build é `bun run build`.
+O proxy mantém as chamadas no mesmo host do frontend e evita depender de CORS no navegador. `VITE_API_URL` é o prefixo usado pela aplicação e deve continuar como `/api` quando servido pelo proxy.
 
-As seis telas e jornadas estão documentadas no repositório de documentação do EduNotas. Para rodar Playwright, inicie a API e o Vite, semeie cinco alunos e rode `bun run test:e2e`. As capturas da execução ficam em `test-results/screenshots/`, dentro deste repositório.
+## API consumida
 
-## Render
+Base: `https://ads.osorio.ifrs.edu.br/progweb-api`
 
-O Dockerfile compila a interface e serve os arquivos pelo Nginx. O arquivo `render.yaml` usa o runtime Docker. Configure `VITE_API_URL` com o endereço público da API, incluindo `/api`; a imagem usa `http://localhost:3000/api` como padrão local.
+| Método | Caminho | Ação |
+| --- | --- | --- |
+| GET | `/estudantes` | Lista estudantes |
+| GET | `/estudantes/:id` | Consulta estudante |
+| POST | `/estudantes` | Cria estudante |
+| PATCH | `/estudantes/:id` | Atualiza estudante (204) |
+| DELETE | `/estudantes/:id` | Exclui estudante (204) |
 
-## CI/CD
+O payload usa `_id`, `nome`, `turma` (opcional) e `nota1`, `nota2`, `nota3`. As notas são números de 0 a 10; `_id` é gerado pelo banco. A média é calculada pela interface e não é enviada à API. Não há fluxo de autenticação nesta API.
 
-O GitHub Actions instala as dependências travadas, compila a interface, constrói a imagem Docker e verifica as rotas `/healthz` e `/login`. O Render publica após os checks passarem quando o repositório estiver conectado.
+## Docker e Render
+
+O Dockerfile constrói os assets e serve a SPA pelo Nginx na porta `10000`. O Nginx encaminha `/api/*` ao endereço configurado em `API_PROXY_BASE`, cujo padrão aponta para a API da disciplina. No Render, `render.yaml` já declara essa variável; para trocar a API, atualize o valor para a base completa terminada em `/`.
+
+O health check é `GET /healthz`. O fallback da SPA permite abrir diretamente as rotas `/estudantes` e `/estudantes/:id`.
+
+## CI
+
+O workflow do GitHub Actions instala as dependências travadas, executa o build e constrói a imagem Docker. A verificação da imagem consulta `/healthz` e a rota da aplicação. O script `bun run test:e2e` intercepta `/api` com dados em memória para exercitar cadastro, consulta, edição e exclusão sem alterar dados da API do professor; exige a aplicação Vite em execução.

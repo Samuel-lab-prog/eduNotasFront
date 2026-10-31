@@ -27,7 +27,7 @@ jobs:
         run: bun run build
 
       - name: Build Docker image
-        run: docker build --build-arg VITE_API_URL=https://edunotas-api.onrender.com/api --tag edunotas-frontend:ci .
+        run: docker build --build-arg VITE_API_URL=/api --tag edunotas-frontend:ci .
 
       - name: Smoke test Docker image
         shell: bash
@@ -42,4 +42,4 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:10000/healthz | grep -q '^ok$'
-          curl --fail --silent http://127.0.0.1:10000/login | grep -qi 'EduNotas'
+          curl --fail --silent http://127.0.0.1:10000/estudantes | grep -qi 'EduNotas'

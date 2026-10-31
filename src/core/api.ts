@@ -1,40 +1,71 @@
-export type Teacher = { id: string; name: string; email: string }
 export type Student = {
-  id: string
-  name: string
-  registration: string
-  classroom: string
-  grade1: number
-  grade2: number
-  average: number
+  _id: string
+  nome: string
+  turma?: string
+  nota1: number
+  nota2: number
+  nota3: number
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-const TOKEN_KEY = 'edunotas.accessToken'
+export type StudentInput = Omit<Student, '_id'>
 
-export const authToken = {
-  get: () => sessionStorage.getItem(TOKEN_KEY),
-  set: (token: string) => sessionStorage.setItem(TOKEN_KEY, token),
-  clear: () => sessionStorage.removeItem(TOKEN_KEY),
-}
+const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
   if (init.body) headers.set('Content-Type', 'application/json')
-  const token = authToken.get()
-  if (token) headers.set('Authorization', `Bearer ${token}`)
-  const response = await fetch(`${API_URL}${path}`, { ...init, headers })
-  const data = await response.json().catch(() => ({})) as T & { error?: string }
-  if (!response.ok) throw new Error(data.error || `Falha na requisição (${response.status}).`)
-  return data
+
+  let response: Response
+  try {
+    response = await fetch(`${API_URL}${path}`, { ...init, headers })
+  } catch {
+    throw new Error('Não foi possível conectar à API. Confira sua conexão e tente novamente.')
+  }
+
+  if (response.status === 204) return undefined as T
+
+  const raw = await response.text()
+  let payload: unknown
+  try {
+    payload = raw ? JSON.parse(raw) : undefined
+  } catch {
+    payload = raw
+  }
+
+  if (!response.ok) {
+    if (typeof payload === 'string' && payload.trim()) throw new Error(payload)
+    if (payload && typeof payload === 'object') {
+      const body = payload as { error?: unknown; message?: unknown }
+      if (typeof body.error === 'string') throw new Error(body.error)
+      if (typeof body.message === 'string') throw new Error(body.message)
+    }
+    throw new Error(`A API respondeu com erro (${response.status}).`)
+  }
+
+  return payload as T
 }
 
 export const api = {
-  login: (email: string, password: string) => request<{ token: string; teacher: Teacher }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  me: () => request<{ teacher: Teacher }>('/auth/me'),
-  students: () => request<{ students: Student[] }>('/students'),
-  student: (id: string) => request<{ student: Student }>(`/students/${id}`),
-  createStudent: (student: Pick<Student, 'name' | 'registration' | 'classroom'>) => request<{ student: Student }>('/students', { method: 'POST', body: JSON.stringify(student) }),
-  updateGrades: (id: string, grade1: number, grade2: number) => request<{ student: Student }>(`/students/${id}/grades`, { method: 'PUT', body: JSON.stringify({ grade1, grade2 }) }),
+  students: () => request<Student[]>('/estudantes'),
+  student: (id: string) => request<Student>(`/estudantes/${encodeURIComponent(id)}`),
+  createStudent: (student: StudentInput) => request<Student>('/estudantes', {
+    method: 'POST',
+    body: JSON.stringify(student),
+  }),
+  updateStudent: (id: string, student: StudentInput) => request<void>(`/estudantes/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(student),
+  }),
+  deleteStudent: (id: string) => request<void>(`/estudantes/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  }),
+}
+
+export function averageOf(student: Pick<Student, 'nota1' | 'nota2' | 'nota3'>): number {
+  return (Number(student.nota1) + Number(student.nota2) + Number(student.nota3)) / 3
+}
+
+export function formatScore(value: number): string {
+  return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 })
 }

@@ -7,5 +7,5 @@ services:
     autoDeployTrigger: checksPass
     healthCheckPath: /healthz
     envVars:
-      - key: VITE_API_URL
-        value: https://edunotas-api.onrender.com/api
+      - key: API_PROXY_BASE
+        value: https://ads.osorio.ifrs.edu.br/progweb-api/
