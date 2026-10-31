@@ -155,7 +155,6 @@ function StudentForm({ mode, initial, onSave }: { mode: 'create' | 'edit'; initi
   const [nota3, setNota3] = useState(String(initial?.nota3 ?? 0))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const navigate = useNavigate()
   const isEdit = mode === 'edit'
   const cancelTo = isEdit && initial ? `/estudantes/${encodeURIComponent(initial._id)}` : '/estudantes'
 
@@ -228,16 +227,17 @@ function StudentDetails({ onDelete }: { onDelete: (student: Student) => Promise<
   const { student, loading, error } = useStudent(id)
   if (loading) return <LoadingState message="Carregando estudante…"/>
   if (error || !student) return <ErrorState message={error || 'Estudante não encontrado.'} onRetry={() => navigate('/estudantes')}/>
+  const currentStudent = student
 
   async function remove() {
-    if (await onDelete(student)) navigate('/estudantes')
+    if (await onDelete(currentStudent)) navigate('/estudantes')
   }
 
   return <>
     <Link className="breadcrumb" to="/estudantes"><ArrowLeft size={15}/>Voltar para estudantes</Link>
-    <PageTitle eyebrow="ESTUDANTE" title={student.nome} subtitle={student.turma?.trim() || 'Turma não informada'} action={<div className="page-actions"><Link className="button button-primary" to={`/estudantes/${encodeURIComponent(student._id)}/editar`}><Pencil size={15}/>Editar</Link><Button unstyled className="button button-danger" onClick={() => void remove()}><Trash2 size={15}/>Excluir</Button></div>}/>
-    <div className="grade-summary"><span>Média das três notas</span><strong>{formatScore(averageOf(student))} <small>/ 10</small></strong></div>
-    <div className="grades-grid three-grade-cards"><GradeCard title="Nota 1" value={student.nota1}/><GradeCard title="Nota 2" value={student.nota2}/><GradeCard title="Nota 3" value={student.nota3}/></div>
+    <PageTitle eyebrow="ESTUDANTE" title={currentStudent.nome} subtitle={currentStudent.turma?.trim() || 'Turma não informada'} action={<div className="page-actions"><Link className="button button-primary" to={`/estudantes/${encodeURIComponent(currentStudent._id)}/editar`}><Pencil size={15}/>Editar</Link><Button unstyled className="button button-danger" onClick={() => void remove()}><Trash2 size={15}/>Excluir</Button></div>}/>
+    <div className="grade-summary"><span>Média das três notas</span><strong>{formatScore(averageOf(currentStudent))} <small>/ 10</small></strong></div>
+    <div className="grades-grid three-grade-cards"><GradeCard title="Nota 1" value={currentStudent.nota1}/><GradeCard title="Nota 2" value={currentStudent.nota2}/><GradeCard title="Nota 3" value={currentStudent.nota3}/></div>
     <p className="info-note">O ID é gerado pelo banco. A média é calculada nesta interface e não é enviada como campo do estudante.</p>
   </>
 }
