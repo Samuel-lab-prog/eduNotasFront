@@ -16,7 +16,7 @@ Copie `.env.example` para `.env.local` se quiser configurar o destino da API. O 
 bun run dev
 ```
 
-O proxy mantém as chamadas no mesmo host do frontend e evita depender de CORS no navegador. `VITE_API_URL` é o prefixo usado pela aplicação e deve continuar como `/api` quando servido pelo proxy.
+O proxy mantém as chamadas no mesmo host do frontend e evita depender de CORS no navegador. `VITE_API_BASE_URL` é o prefixo usado pela aplicação e deve continuar como `/api` quando servido pelo proxy; a base externa pode ser configurada em `API_PROXY_TARGET` durante o desenvolvimento local.
 
 ## API consumida
 
@@ -32,6 +32,12 @@ Base: `https://ads.osorio.ifrs.edu.br/progweb-api`
 
 O payload usa `_id`, `nome`, `turma` (opcional) e `nota1`, `nota2`, `nota3`. As notas são números de 0 a 10; `_id` é gerado pelo banco. A média é calculada pela interface e não é enviada à API. Não há fluxo de autenticação nesta API.
 
+Rotas da interface: `/` (resumo), `/estudantes` (lista), `/estudantes/novo` (cadastro), `/estudantes/:id` (boletim) e `/estudantes/:id/editar` (edição). A versão atual deixa de usar o login, matrícula, duas notas e o backend próprio da versão anterior, que fica separado e não é consultado pelo frontend.
+
+## Verificação do serviço
+
+Em 10/11/2026, `GET /estudantes` respondeu `200` com um array JSON; os campos usados pela interface estavam presentes e tipados como esperado. A API não expõe OpenAPI/Swagger nos caminhos comuns verificados. O preflight CORS observado permite `http://localhost:3000`, por isso o navegador chama o proxy local, Vercel ou Nginx em `/api`. A consulta de um ID inexistente respondeu `500`; essa resposta do servidor não foi alterada pelo frontend. POST, PATCH e DELETE não foram executados contra a base remota.
+
 ## Docker e Render
 
 O Dockerfile constrói os assets e serve a SPA pelo Nginx na porta `10000`. O Nginx encaminha `/api/*` ao endereço configurado em `API_PROXY_BASE`, cujo padrão aponta para a API da disciplina. No Render, `render.yaml` já declara essa variável; para trocar a API, atualize o valor para a base completa terminada em `/`.
@@ -44,4 +50,4 @@ O arquivo `vercel.json` encaminha `/api/*` para a API da disciplina e mantém o 
 
 ## CI
 
-O workflow do GitHub Actions instala as dependências travadas, executa o build e constrói a imagem Docker. A verificação da imagem consulta `/healthz` e a rota da aplicação. O script `bun run test:e2e` intercepta `/api` com dados em memória para exercitar cadastro, consulta, edição e exclusão sem alterar dados da API do professor; exige a aplicação Vite em execução.
+O workflow do GitHub Actions instala as dependências travadas, verifica tipos, roda os testes Bun e o fluxo Playwright com respostas simuladas, executa o build e constrói a imagem Docker. Os testes de navegador usam somente dados em memória e não alteram registros da API do professor. O projeto não tinha uma configuração de lint; typecheck e build são executados separadamente.

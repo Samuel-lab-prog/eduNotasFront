@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "bun test",
     "preview": "vite preview",
     "test:e2e": "node scripts/capture-and-check.mjs"
   },

@@ -3,6 +3,7 @@ import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams } from '
 import { Button, Input } from '@chakra-ui/react'
 import { ArrowLeft, BookOpen, Eye, GraduationCap, Home, Pencil, Plus, Trash2, Users } from 'lucide-react'
 import { api, averageOf, formatScore, type Student, type StudentInput } from '../core/api'
+import { validateStudent } from '../core/student-validation'
 
 type Feedback = { kind: 'success' | 'error'; message: string }
 
@@ -150,9 +151,9 @@ function StudentTable({ students, onDelete }: { students: Student[]; onDelete?: 
 function StudentForm({ mode, initial, onSave }: { mode: 'create' | 'edit'; initial?: Student; onSave: (student: StudentInput) => Promise<void> }) {
   const [nome, setNome] = useState(initial?.nome ?? '')
   const [turma, setTurma] = useState(initial?.turma ?? '')
-  const [nota1, setNota1] = useState(String(initial?.nota1 ?? 0))
-  const [nota2, setNota2] = useState(String(initial?.nota2 ?? 0))
-  const [nota3, setNota3] = useState(String(initial?.nota3 ?? 0))
+  const [nota1, setNota1] = useState(initial ? String(initial.nota1) : '')
+  const [nota2, setNota2] = useState(initial ? String(initial.nota2) : '')
+  const [nota3, setNota3] = useState(initial ? String(initial.nota3) : '')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const isEdit = mode === 'edit'
@@ -161,16 +162,15 @@ function StudentForm({ mode, initial, onSave }: { mode: 'create' | 'edit'; initi
   async function submit(event: FormEvent) {
     event.preventDefault()
     setError('')
-    const values = [nota1, nota2, nota3].map(Number)
-    if (!nome.trim()) { setError('Informe o nome do estudante.'); return }
-    if ([nota1, nota2, nota3].some((value) => !value.trim()) || values.some((value) => !Number.isFinite(value) || value < 0 || value > 10)) {
-      setError('Informe as três notas entre 0 e 10.')
+    const validation = validateStudent({ nome, turma, nota1, nota2, nota3 })
+    if (!validation.valid) {
+      setError(validation.message)
       return
     }
 
     setBusy(true)
     try {
-      await onSave({ nome: nome.trim(), turma: turma.trim(), nota1: values[0], nota2: values[1], nota3: values[2] })
+      await onSave(validation.value)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : `Não foi possível ${isEdit ? 'atualizar' : 'cadastrar'} o estudante.`)
     } finally {
@@ -181,24 +181,24 @@ function StudentForm({ mode, initial, onSave }: { mode: 'create' | 'edit'; initi
   return <>
     <Link className="breadcrumb" to={cancelTo}><ArrowLeft size={15}/>{isEdit ? 'Voltar ao estudante' : 'Voltar para estudantes'}</Link>
     <PageTitle eyebrow={isEdit ? 'EDIÇÃO' : 'NOVO REGISTRO'} title={isEdit ? 'Editar estudante' : 'Cadastrar estudante'} subtitle={isEdit ? 'Atualize os dados e as três notas.' : 'Informe o nome, a turma e as três notas.'}/>
-    <form className="form-card student-form" onSubmit={submit}>
+    <form className="form-card student-form" noValidate onSubmit={submit}>
       {initial && <p className="field-help">ID do banco: <code>{initial._id}</code></p>}
-      <label>Nome do estudante<Input unstyled autoFocus required value={nome} onChange={(event) => setNome(event.target.value)} placeholder="Nome completo"/></label>
-      <label>Turma <span className="optional-label">(opcional)</span><Input unstyled value={turma} onChange={(event) => setTurma(event.target.value)} placeholder="Ex.: 9º ano A"/></label>
+      <label>Nome do estudante<Input unstyled autoFocus required aria-invalid={Boolean(error && !nome.trim())} value={nome} onChange={(event) => { setNome(event.target.value); setError('') }} placeholder="Nome completo"/></label>
+      <label>Turma <span className="optional-label">(opcional)</span><Input unstyled value={turma} onChange={(event) => { setTurma(event.target.value); setError('') }} placeholder="Ex.: 9º ano A"/></label>
       <div className="grade-input-grid">
         <GradeInput label="Nota 1" value={nota1} onChange={setNota1}/>
         <GradeInput label="Nota 2" value={nota2} onChange={setNota2}/>
         <GradeInput label="Nota 3" value={nota3} onChange={setNota3}/>
       </div>
       <div className="average-preview"><span>Média calculada</span><strong>{[nota1, nota2, nota3].every((value) => value.trim() && Number.isFinite(Number(value))) ? formatScore((Number(nota1) + Number(nota2) + Number(nota3)) / 3) : '—'}</strong></div>
-      {error && <div className="form-error" role="alert">{error}</div>}
+      {error && <div className="form-error" role="alert" aria-live="polite">{error}</div>}
       <div className="form-actions"><Link className="button button-quiet" to={cancelTo}>Cancelar</Link><Button unstyled className="button button-primary" type="submit" disabled={busy}>{busy ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Cadastrar estudante'}</Button></div>
     </form>
   </>
 }
 
 function GradeInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label>{label}<div className="grade-input-wrap"><Input unstyled type="number" min="0" max="10" step="0.1" required value={value} onChange={(event) => onChange(event.target.value)}/><span>de 10</span></div></label>
+  return <label>{label}<div className="grade-input-wrap"><Input unstyled type="number" min="0" max="10" step="any" aria-required="true" value={value} onChange={(event) => onChange(event.target.value)}/><span>de 10</span></div></label>
 }
 
 function useStudent(id: string | undefined) {
