@@ -89,7 +89,7 @@ function Shell({ children, feedback, clearFeedback }: { children: ReactNode; fee
       <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/estudantes"><Users size={17}/>Estudantes</NavLink>
     </aside>
     <main className="main-area">
-      <header className="topbar"><span>Cadastro e acompanhamento de notas</span><span className="top-user">API acadêmica</span></header>
+      <header className="topbar"><span>Cadastro e acompanhamento de notas</span></header>
       <div className="content">
         {feedback && <div className={`toast ${feedback.kind === 'error' ? 'toast-error' : ''}`} role={feedback.kind === 'error' ? 'alert' : 'status'}>
           {feedback.message}<button aria-label="Fechar aviso" onClick={clearFeedback}>×</button>
@@ -182,7 +182,6 @@ function StudentForm({ mode, initial, onSave }: { mode: 'create' | 'edit'; initi
     <Link className="breadcrumb" to={cancelTo}><ArrowLeft size={15}/>{isEdit ? 'Voltar ao estudante' : 'Voltar para estudantes'}</Link>
     <PageTitle eyebrow={isEdit ? 'EDIÇÃO' : 'NOVO REGISTRO'} title={isEdit ? 'Editar estudante' : 'Cadastrar estudante'} subtitle={isEdit ? 'Atualize os dados e as três notas.' : 'Informe o nome, a turma e as três notas.'}/>
     <form className="form-card student-form" noValidate onSubmit={submit}>
-      {initial && <p className="field-help">ID do banco: <code>{initial._id}</code></p>}
       <label>Nome do estudante<Input unstyled autoFocus required aria-invalid={Boolean(error && !nome.trim())} value={nome} onChange={(event) => { setNome(event.target.value); setError('') }} placeholder="Nome completo"/></label>
       <label>Turma <span className="optional-label">(opcional)</span><Input unstyled value={turma} onChange={(event) => { setTurma(event.target.value); setError('') }} placeholder="Ex.: 9º ano A"/></label>
       <div className="grade-input-grid">
@@ -238,7 +237,6 @@ function StudentDetails({ onDelete }: { onDelete: (student: Student) => Promise<
     <PageTitle eyebrow="ESTUDANTE" title={currentStudent.nome} subtitle={currentStudent.turma?.trim() || 'Turma não informada'} action={<div className="page-actions"><Link className="button button-primary" to={`/estudantes/${encodeURIComponent(currentStudent._id)}/editar`}><Pencil size={15}/>Editar</Link><Button unstyled className="button button-danger" onClick={() => void remove()}><Trash2 size={15}/>Excluir</Button></div>}/>
     <div className="grade-summary"><span>Média das três notas</span><strong>{formatScore(averageOf(currentStudent))} <small>/ 10</small></strong></div>
     <div className="grades-grid three-grade-cards"><GradeCard title="Nota 1" value={currentStudent.nota1}/><GradeCard title="Nota 2" value={currentStudent.nota2}/><GradeCard title="Nota 3" value={currentStudent.nota3}/></div>
-    <p className="info-note">O ID é gerado pelo banco. A média é calculada nesta interface e não é enviada como campo do estudante.</p>
   </>
 }
 

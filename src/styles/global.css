@@ -11,8 +11,6 @@ table.students-table{min-width:900px}
 .grade-input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
 .form-card .grade-input-grid label{margin-bottom:0}
 .optional-label{font-weight:400;color:var(--muted)}
-.field-help{margin:0 0 18px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
-.field-help code{color:var(--ink)}
 .student-form .average-preview{margin-top:16px}
 .three-grade-cards{grid-template-columns:repeat(3,minmax(0,280px));max-width:870px}
 .request-error{max-width:680px;padding:16px;background:#f9eceb;border:1px solid #efdbd9;color:var(--error);font-size:13px}
